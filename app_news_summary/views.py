@@ -103,6 +103,25 @@ def summary_esjieba_database(request):
 					  evaluate_every=10, verbose=1)  # 做 LDA
 		df_lda = lda.dataframe
 
+		# summary 從database存取, keyword=肺炎, search_time=過去一個月
+		date_now = date.today()
+		date_end = timedelta(days=30)
+		D1 = date_now-date_end
+		summary_for_database = models.SummaryCrawl.objects.filter(
+			content__contains=keyword).filter(
+			date__gte=D1).order_by(
+			'id')
+		summary = pd.DataFrame(list(summary_for_database.values(
+			"title", "content", "date", "url", "topic", "jeiba", "summary1"
+		)))
+		# 將topic轉型, 從str轉成int, 以作為網頁顯示時判斷用
+		summary['topic'] = summary['topic'].astype('int')
+
+
+		'''
+			暫時封印，資料改成完全都從資料庫撈取
+		'''
+		'''
 		if keyword == "肺炎" and search_time == "180":
 			# 展示用，取得已分析好的結果摘要，直接呈現在網頁上
 			# 範例: keyword=肺炎, search_time=過去半年
@@ -135,11 +154,12 @@ def summary_esjieba_database(request):
 			# 取得LDA結果，做抽取式摘要
 			summary = esjieba.Drawable_summary(
 				df_lda, 'text_rank', 25, '2', keyword).make_summary()
+		'''
 
-				# 輸出csv檔
-				# summary.to_csv("app_news_summary/static/summary_output_"+str(keyword)+"_"+str(search_time)+".csv")
+		# 輸出csv檔
+		# summary.to_csv("app_news_summary/static/summary_output_"+str(keyword)+"_"+str(search_time)+".csv")
 
-				# 無論如何先刪掉之前已產生的文字雲圖片
+		# 無論如何先刪掉之前已產生的文字雲圖片
 		for i in range(0, 3):
 			try:
 				os.remove(
